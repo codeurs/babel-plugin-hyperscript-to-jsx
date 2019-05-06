@@ -99,6 +99,8 @@ const injectChildren = (jsxElem, node) => {
 }
 
 const transformChildrenArray = node => {
+	if (node.elements.length === 1 && t.isArrayExpression(node.elements[0]))
+		return transformChildrenArray(node.elements[0])
   return node.elements.map(element => {
     if (isHyperscriptCall(element)) {
       return transformHyperscriptToJsx(element, false)
@@ -202,8 +204,7 @@ const createJSXElementWithChildren = (firstArg, secondArg, rest) => {
   const isProbablySpread =
     (t.isCallExpression(secondArg) && !isHyperscriptCall(secondArg)) ||
     t.isIdentifier(secondArg) ||
-    t.isMemberExpression(secondArg) ||
-    t.isTSAsExpression(secondArg)
+    t.isMemberExpression(secondArg)
   if (!isProbablySpread)
     return injectChildren(jsxElem, t.arrayExpression([secondArg, ...rest]))
   jsxElem.openingElement.attributes.push(t.JSXSpreadAttribute(secondArg))
